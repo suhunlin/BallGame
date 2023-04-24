@@ -8,6 +8,7 @@ import android.graphics.Canvas;
 import android.os.Handler;
 import android.os.Message;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.View;
 
 import androidx.annotation.NonNull;
@@ -21,15 +22,24 @@ public class GameView extends View {
     private Resources res;
     private Bitmap bmpBall;
     private boolean isInitBallInfo;
-    private int ballW, ballH;
-    private float ballX, ballY, motion;
+    private int viewW, viewH, ballW, ballH;
+    private float ballX, ballY, dX, dY;
     private Timer timer = new Timer();
+    private MotionTask motionTask;
     private UIHandler uiHandler = new UIHandler();
 
     private class MotionTask extends TimerTask{
         @Override
         public void run() {
-            ballX = ballY += motion;
+            if(ballX < 0 || ballX + ballW > viewW){
+                dX *= -1;
+            }
+
+            if(ballY < 0 || ballY + ballH > viewH){
+                dY *= -1;
+            }
+            ballX += dX;
+            ballY += dY;
             uiHandler.sendEmptyMessage(0);
         }
     }
@@ -48,11 +58,13 @@ public class GameView extends View {
     }
     private void initBallInfo(){
         float ratio = 12.0f;
-        motion = 6.0f;
+        viewW = getWidth(); viewH = getHeight();
+        dX = dY = 20.0f;
         bmpBall = BitmapFactory.decodeResource(res, R.drawable.ball0);
         calculateBallScaledRatio(ratio);
         bmpBall = Bitmap.createScaledBitmap(bmpBall, ballW, ballH, false);
-        timer.schedule(new MotionTask(), 1000, 100);
+        motionTask = new MotionTask();
+        timer.schedule(motionTask, 1000, 60);
         isInitBallInfo = true;
     }
     private void calculateBallScaledRatio(float ratio){
