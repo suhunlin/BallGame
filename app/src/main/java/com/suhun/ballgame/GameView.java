@@ -10,13 +10,25 @@ import android.view.View;
 
 import androidx.annotation.Nullable;
 
+import java.util.Timer;
+import java.util.TimerTask;
+
 public class GameView extends View {
     private String tag = GameView.class.getSimpleName();
     private Resources res;
     private Bitmap bmpBall;
     private boolean isInitBallInfo;
     private int ballW, ballH;
-    private float ballX, ballY;
+    private float ballX, ballY, motion;
+    private Timer timer = new Timer();
+
+    private class MotionTask extends TimerTask{
+        @Override
+        public void run() {
+            ballX = ballY += motion;
+            postInvalidate();
+        }
+    }
     public GameView(Context context, @Nullable AttributeSet attrs) {
         super(context, attrs);
         res = context.getResources();
@@ -24,9 +36,11 @@ public class GameView extends View {
     }
     private void initBallInfo(){
         float ratio = 12.0f;
+        motion = 6.0f;
         bmpBall = BitmapFactory.decodeResource(res, R.drawable.ball0);
         calculateBallScaledRatio(ratio);
         bmpBall = Bitmap.createScaledBitmap(bmpBall, ballW, ballH, false);
+        timer.schedule(new MotionTask(), 1000, 100);
         isInitBallInfo = true;
     }
     private void calculateBallScaledRatio(float ratio){
